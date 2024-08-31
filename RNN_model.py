@@ -48,19 +48,18 @@ class RNNModel(nn.Module):
         x = self.cnn(x)  # (B, C, H, W)
         
         # Prepare for RNN
-        x = x.permute(0, 2, 1, 3)
-        #x = x.permute(3, 0, 1, 2)  # (W, B, C, H)
-        x = x.flatten(2)  # (W, B, C*H)
+        x = x.permute(0, 2, 1, 3) # (B, C, H, W)
+        x = x.flatten(2)  # (B, W, C*H)
         print(x.shape)
 
         # RNN
-        x, state = self.rnn(x)  # (W, B, 2*H)
+        x = nn.LSTM(256, 256, num_layers = 2, bidirectional = True, batch_first= True)(x)[0]  # (W, B, 2*H)
 
         # FC
-        x = self.fc(x)  # (W, B, num_classes)
+        x = self.fc(x)  # (B, seq_len, num_classes)
 
         # Log softmax
-        x = F.log_softmax(x, dim=2)
+        x = F.log_softmax(x, dim=2) # (B, seq_len, num_classes)
 
         return x
 
